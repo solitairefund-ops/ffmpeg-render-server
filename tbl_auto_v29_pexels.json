@@ -1,5 +1,5 @@
 {
-    "name": "tbl auto v33 simple params",
+    "name": "tbl auto v34 railway",
     "flow": [
         {
             "id": 50,
@@ -865,7 +865,7 @@
                 "authenticationType": "noAuth"
             },
             "mapper": {
-                "url": "https://ffmpeg-render-server-0r17.onrender.com/render",
+                "url": "https://ffmpeg-render-server-production-1254.up.railway.app/render",
                 "method": "get",
                 "headers": [],
                 "shareCookies": false,
