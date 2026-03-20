@@ -2,7 +2,7 @@ services:
   - type: web
     name: ffmpeg-render-server
     env: node
-    buildCommand: npm install
+    buildCommand: npm install && pip install yt-dlp
     startCommand: node index.js
     envVars:
       - key: NODE_ENV
