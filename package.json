@@ -4,7 +4,8 @@
   "description": "FFmpeg video render server for Make.com automation",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "build": "pip install yt-dlp --quiet"
   },
   "dependencies": {
     "express": "^4.18.2",
