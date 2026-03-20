@@ -3,23 +3,18 @@ const ffmpeg = require("fluent-ffmpeg");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const { execSync, exec } = require("child_process");
+const { exec } = require("child_process");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
 app.use(express.json());
 const TMP = "/tmp";
 
-// Install yt-dlp on startup
-try {
-  execSync("which yt-dlp || pip install yt-dlp --quiet");
-  console.log("yt-dlp ready");
-} catch (e) {
-  console.log("yt-dlp install note:", e.message);
-}
-
 async function downloadFile(url, dest) {
-  const response = await axios({ url, responseType: "stream", timeout: 60000,
+  const response = await axios({
+    url,
+    responseType: "stream",
+    timeout: 120000,
     headers: { "User-Agent": "Mozilla/5.0" }
   });
   return new Promise((resolve, reject) => {
@@ -32,26 +27,48 @@ async function downloadFile(url, dest) {
 
 async function downloadYouTube(url, dest) {
   return new Promise((resolve, reject) => {
-    const cmd = `yt-dlp -f "bestvideo[ext=mp4][height<=1080]+bestaudio/best[ext=mp4]" --merge-output-format mp4 -o "${dest}" "${url}" --no-playlist`;
-    console.log("Downloading YouTube video...");
-    exec(cmd, (error, stdout, stderr) => {
-      if (error) {
-        console.error("yt-dlp error:", stderr);
-        reject(new Error(stderr || error.message));
-      } else {
-        resolve();
+    // Try multiple possible yt-dlp paths
+    const ytdlpPaths = [
+      "yt-dlp",
+      "/usr/local/bin/yt-dlp",
+      "/usr/bin/yt-dlp",
+      "python3 -m yt_dlp"
+    ];
+
+    const tryPath = (index) => {
+      if (index >= ytdlpPaths.length) {
+        return reject(new Error("yt-dlp not found in any path"));
       }
-    });
+      const bin = ytdlpPaths[index];
+      const cmd = `${bin} -f "bestvideo[ext=mp4][height<=720]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "${dest}" "${url}" --no-playlist --no-warnings`;
+      exec(cmd, { timeout: 180000 }, (error, stdout, stderr) => {
+        if (error) {
+          console.log(`${bin} failed, trying next...`);
+          tryPath(index + 1);
+        } else {
+          console.log("Downloaded with:", bin);
+          resolve();
+        }
+      });
+    };
+    tryPath(0);
   });
 }
 
-app.get("/health", (req, res) => res.json({ status: "ok", yt_dlp: "ready" }));
+app.get("/health", (req, res) => {
+  exec("which yt-dlp || python3 -m yt_dlp --version", (err, stdout) => {
+    res.json({ status: "ok", yt_dlp: stdout.trim() || "checking..." });
+  });
+});
 
 async function handleRender(params, res) {
   const { video1, audio, title } = params;
 
   if (!video1 || !audio) {
-    return res.status(400).json({ error: "video1 and audio are required", received: params });
+    return res.status(400).json({
+      error: "video1 and audio are required",
+      received: Object.keys(params)
+    });
   }
 
   const id = uuidv4();
@@ -60,20 +77,13 @@ async function handleRender(params, res) {
   const outputPath = path.join(TMP, `${id}_output.mp4`);
 
   try {
-    // Download YouTube video
-    console.log("Fetching video:", video1);
-    if (video1.includes("youtube.com") || video1.includes("youtu.be")) {
-      await downloadYouTube(video1, videoPath);
-    } else {
-      await downloadFile(video1, videoPath);
-    }
+    console.log("Downloading YouTube video:", video1);
+    await downloadYouTube(video1, videoPath);
 
-    // Download audio
-    console.log("Fetching audio:", audio);
+    console.log("Downloading audio:", audio);
     await downloadFile(audio, audioPath);
 
-    // Render with FFmpeg
-    console.log("Rendering...");
+    console.log("Rendering with FFmpeg...");
     await new Promise((resolve, reject) => {
       ffmpeg()
         .input(videoPath)
@@ -92,11 +102,11 @@ async function handleRender(params, res) {
         ])
         .output(outputPath)
         .on("end", resolve)
-        .on("error", (err) => reject(err))
+        .on("error", reject)
         .run();
     });
 
-    // Stream back the file
+    console.log("Streaming output...");
     res.setHeader("Content-Type", "video/mp4");
     res.setHeader("Content-Disposition", `attachment; filename="${id}.mp4"`);
     const stream = fs.createReadStream(outputPath);
@@ -109,7 +119,7 @@ async function handleRender(params, res) {
     });
 
   } catch (err) {
-    console.error("Error:", err.message);
+    console.error("Render failed:", err.message);
     res.status(500).json({ error: err.message });
     [videoPath, audioPath, outputPath].forEach(f => {
       try { fs.unlinkSync(f); } catch (e) {}
