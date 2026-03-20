@@ -1,4 +1,3 @@
-
 const express = require("express");
 const ffmpeg = require("fluent-ffmpeg");
 const axios = require("axios");
@@ -50,18 +49,23 @@ async function getVoiceRSSAudio(dest) {
   await downloadFile(url, dest);
   const size = fs.statSync(dest).size;
   console.log("Audio size:", size, "bytes");
-  if (size < 1000) throw new Error("VoiceRSS returned empty audio - check API key");
+  if (size < 1000) throw new Error("VoiceRSS returned empty audio");
 }
 
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", mode: "pexels+voicerss+ffmpeg" });
+  const { exec } = require("child_process");
+  exec("ffmpeg -version", (err, stdout) => {
+    if (err) {
+      res.json({ status: "error", ffmpeg: "not found", error: err.message });
+    } else {
+      res.json({ status: "ok", ffmpeg: "ready", mode: "pexels+voicerss+ffmpeg" });
+    }
+  });
 });
 
 async function handleRender(params, res) {
-  // query is the only required param now - everything else is internal
   const query = params.query || params.q || "luxury travel";
   const title = params.title || query;
-
   console.log("Render request - query:", query, "title:", title);
 
   const id = uuidv4();
@@ -70,15 +74,12 @@ async function handleRender(params, res) {
   const outputPath = path.join(TMP, `${id}_output.mp4`);
 
   try {
-    // Get Pexels video
     const videoUrl = await getPexelsVideo(query);
     await downloadFile(videoUrl, videoPath);
-    console.log("Video downloaded, size:", fs.statSync(videoPath).size);
+    console.log("Video downloaded:", fs.statSync(videoPath).size, "bytes");
 
-    // Get VoiceRSS audio
     await getVoiceRSSAudio(audioPath);
 
-    // Render with FFmpeg
     console.log("Rendering...");
     await new Promise((resolve, reject) => {
       ffmpeg()
@@ -102,8 +103,7 @@ async function handleRender(params, res) {
         .run();
     });
 
-    console.log("Render done, size:", fs.statSync(outputPath).size);
-
+    console.log("Render done:", fs.statSync(outputPath).size, "bytes");
     res.setHeader("Content-Type", "video/mp4");
     res.setHeader("Content-Disposition", `attachment; filename="${id}.mp4"`);
     const stream = fs.createReadStream(outputPath);
