@@ -1,3 +1,4 @@
+
 const express = require("express");
 const ffmpeg = require("fluent-ffmpeg");
 const axios = require("axios");
@@ -8,7 +9,10 @@ const { v4: uuidv4 } = require("uuid");
 const app = express();
 app.use(express.json());
 const TMP = "/tmp";
+
 const PEXELS_KEY = "Us2Mb7nrDT69ZGeOwuIzNplO3xHjjQipjcYnmN0QFJjeOBB37nCR8Jo6";
+const VOICERSS_KEY = "90be4fec507346188e15b5645cb80111";
+const SCRIPT = "Most people miss this. But once you see it you start noticing it everywhere. And now you will never be able to ignore it.";
 
 async function downloadFile(url, dest) {
   const response = await axios({
@@ -29,29 +33,36 @@ async function getPexelsVideo(query) {
   console.log("Fetching Pexels video for:", query);
   const res = await axios.get("https://api.pexels.com/videos/search", {
     headers: { Authorization: PEXELS_KEY },
-    params: { query, per_page: 3, orientation: "portrait" }
+    params: { query: query || "luxury travel", per_page: 3, orientation: "portrait" }
   });
   const videos = res.data.videos;
-  if (!videos || videos.length === 0) throw new Error("No Pexels videos found for: " + query);
-  // Pick highest quality file under 1080p
+  if (!videos || videos.length === 0) throw new Error("No Pexels videos found");
   const video = videos[0];
   const files = video.video_files.sort((a, b) => b.height - a.height);
   const file = files.find(f => f.height <= 1080 && f.file_type === "video/mp4") || files[0];
-  console.log("Got Pexels video:", file.link);
+  console.log("Pexels video URL:", file.link);
   return file.link;
 }
 
-app.get("/health", (req, res) => res.json({ status: "ok", mode: "pexels+ffmpeg" }));
+async function getVoiceRSSAudio(dest) {
+  console.log("Fetching VoiceRSS audio...");
+  const url = `https://api.voicerss.org/?key=${VOICERSS_KEY}&hl=en-us&v=John&r=0&c=mp3&f=44khz_16bit_stereo&src=${encodeURIComponent(SCRIPT)}`;
+  await downloadFile(url, dest);
+  const size = fs.statSync(dest).size;
+  console.log("Audio size:", size, "bytes");
+  if (size < 1000) throw new Error("VoiceRSS returned empty audio - check API key");
+}
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", mode: "pexels+voicerss+ffmpeg" });
+});
 
 async function handleRender(params, res) {
-  const { query, audio, title } = params;
+  // query is the only required param now - everything else is internal
+  const query = params.query || params.q || "luxury travel";
+  const title = params.title || query;
 
-  if (!query || !audio) {
-    return res.status(400).json({
-      error: "query and audio are required",
-      received: Object.keys(params)
-    });
-  }
+  console.log("Render request - query:", query, "title:", title);
 
   const id = uuidv4();
   const videoPath = path.join(TMP, `${id}_video.mp4`);
@@ -59,16 +70,15 @@ async function handleRender(params, res) {
   const outputPath = path.join(TMP, `${id}_output.mp4`);
 
   try {
-    // Get video from Pexels
+    // Get Pexels video
     const videoUrl = await getPexelsVideo(query);
-    console.log("Downloading video...");
     await downloadFile(videoUrl, videoPath);
+    console.log("Video downloaded, size:", fs.statSync(videoPath).size);
 
-    // Download audio
-    console.log("Downloading audio...");
-    await downloadFile(audio, audioPath);
+    // Get VoiceRSS audio
+    await getVoiceRSSAudio(audioPath);
 
-    // Render
+    // Render with FFmpeg
     console.log("Rendering...");
     await new Promise((resolve, reject) => {
       ffmpeg()
@@ -92,7 +102,8 @@ async function handleRender(params, res) {
         .run();
     });
 
-    console.log("Streaming output...");
+    console.log("Render done, size:", fs.statSync(outputPath).size);
+
     res.setHeader("Content-Type", "video/mp4");
     res.setHeader("Content-Disposition", `attachment; filename="${id}.mp4"`);
     const stream = fs.createReadStream(outputPath);
