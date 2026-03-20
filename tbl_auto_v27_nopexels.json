@@ -1,0 +1,912 @@
+{
+    "name": "tbl auto v6 fixed",
+    "flow": [
+        {
+            "id": 50,
+            "module": "datastore:GetRecord",
+            "version": 1,
+            "parameters": {
+                "datastore": 103998
+            },
+            "mapper": {
+                "key": "1",
+                "returnWrapped": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": -600,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "datastore": {
+                            "label": "Query Index"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "datastore",
+                        "type": "datastore",
+                        "label": "Data store",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "key",
+                        "type": "text",
+                        "label": "Key",
+                        "required": true
+                    },
+                    {
+                        "name": "returnWrapped",
+                        "type": "boolean",
+                        "label": "Return Wrapped Output",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "index",
+                        "label": "index",
+                        "type": "number"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 51,
+            "module": "google-sheets:getCell",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 5554949
+            },
+            "mapper": {
+                "select": "list",
+                "cell": "A{{50.index + 1}}",
+                "valueRenderOption": "FORMATTED_VALUE",
+                "dateTimeRenderOption": "FORMATTED_STRING",
+                "from": "share",
+                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "sheetId": "SEARCH QUERIES"
+            },
+            "metadata": {
+                "designer": {
+                    "x": -300,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "label": "My Google connection (solitairefund@gmail.com)",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            }
+                        }
+                    },
+                    "expect": {
+                        "select": {
+                            "label": "Search by path"
+                        },
+                        "valueRenderOption": {
+                            "mode": "chose",
+                            "label": "Formatted value"
+                        },
+                        "dateTimeRenderOption": {
+                            "mode": "chose",
+                            "label": "Formatted string"
+                        },
+                        "from": {
+                            "label": "Shared with me"
+                        },
+                        "spreadsheetId": {
+                            "path": [
+                                "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc"
+                            ]
+                        },
+                        "sheetId": {
+                            "label": "SEARCH QUERIES"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 52,
+            "module": "datastore:UpdateRecord",
+            "version": 1,
+            "parameters": {
+                "datastore": 103998
+            },
+            "mapper": {
+                "key": "1",
+                "upsert": true,
+                "overwriteArrays": false,
+                "data": {
+                    "index": "{{if(50.index + 1 >= 47; 0; 50.index + 1)}}"
+                }
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "datastore": {
+                            "label": "Query Index"
+                        }
+                    },
+                    "expect": {
+                        "upsert": {
+                            "mode": "chose"
+                        },
+                        "overwriteArrays": {
+                            "mode": "chose"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "datastore",
+                        "type": "datastore",
+                        "label": "Data store",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "key",
+                        "type": "text",
+                        "label": "Key",
+                        "required": true
+                    },
+                    {
+                        "name": "upsert",
+                        "type": "boolean",
+                        "label": "Insert missing record",
+                        "required": true
+                    },
+                    {
+                        "name": "overwriteArrays",
+                        "type": "boolean",
+                        "label": "Overwrite an existing array in the record",
+                        "required": true
+                    },
+                    {
+                        "name": "data",
+                        "type": "collection",
+                        "label": "Record",
+                        "spec": [
+                            {
+                                "name": "index",
+                                "type": "number",
+                                "label": "index"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "id": 1,
+            "module": "http:MakeRequest",
+            "version": 4,
+            "parameters": {
+                "tlsType": "",
+                "proxyKeychain": "",
+                "authenticationType": "noAuth"
+            },
+            "mapper": {
+                "url": "https://www.googleapis.com/youtube/v3/search",
+                "method": "get",
+                "headers": [],
+                "shareCookies": false,
+                "parseResponse": true,
+                "allowRedirects": true,
+                "queryParameters": [
+                    {
+                        "name": "part",
+                        "value": "snippet"
+                    },
+                    {
+                        "name": "q",
+                        "value": "{{51.value}}"
+                    },
+                    {
+                        "name": "type",
+                        "value": "video"
+                    },
+                    {
+                        "name": "videoCategoryId",
+                        "value": "19"
+                    },
+                    {
+                        "name": "maxResults",
+                        "value": "5"
+                    },
+                    {
+                        "name": "order",
+                        "value": "relevance"
+                    },
+                    {
+                        "name": "key",
+                        "value": "AIzaSyA5t69d6EcKpVBSZLq4CJB5WJaVt4DgUDY"
+                    }
+                ],
+                "stopOnHttpError": true,
+                "requestCompressedContent": true
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "tlsType": {
+                            "label": "Empty"
+                        },
+                        "proxyKeychain": {
+                            "label": "Choose a key"
+                        },
+                        "authenticationType": {
+                            "label": "No authentication"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 54,
+            "module": "builtin:BasicFeeder",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "array": "{{1.data.items}}"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                }
+            }
+        },
+        {
+            "id": 34,
+            "module": "google-sheets:filterRows",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 5554949
+            },
+            "mapper": {
+                "from": "share",
+                "limit": "1",
+                "filter": [
+                    [
+                        {
+                            "a": "A",
+                            "b": "{{54.id.videoId}}",
+                            "o": "text:equal"
+                        }
+                    ]
+                ],
+                "sheetId": "CONTENT VAULT",
+                "sortOrder": "asc",
+                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "tableFirstRow": "A1:Z1",
+                "includesHeaders": true,
+                "valueRenderOption": "FORMATTED_VALUE",
+                "dateTimeRenderOption": "FORMATTED_STRING"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "from": {
+                            "label": "Select from all"
+                        },
+                        "sheetId": {
+                            "mode": "chose",
+                            "label": "CONTENT VAULT"
+                        },
+                        "sortOrder": {
+                            "mode": "chose",
+                            "label": "Ascending"
+                        },
+                        "spreadsheetId": {
+                            "rpcSearch": {
+                                "label": "TBL",
+                                "value": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc"
+                            },
+                            "path": []
+                        },
+                        "tableFirstRow": {
+                            "label": "A-Z"
+                        },
+                        "includesHeaders": {
+                            "mode": "chose",
+                            "label": "Yes"
+                        },
+                        "valueRenderOption": {
+                            "mode": "chose",
+                            "label": "Formatted value"
+                        },
+                        "dateTimeRenderOption": {
+                            "mode": "chose",
+                            "label": "Formatted string"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            },
+                            "label": "My Google connection (solitairefund@gmail.com)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "google-sheets:addRow",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 5554949
+            },
+            "mapper": {
+                "from": "drive",
+                "mode": "select",
+                "values": {
+                    "ID": "{{54.id.videoId}}",
+                    "TITLE": "{{54.snippet.title}}",
+                    "STATUS": "Sourced",
+                    "SEO TITLE": "{{if(length(54.snippet.title) <= 60; 54.snippet.title; substring(54.snippet.title; 0; 57) & \"...\")}}",
+                    "SOURCE URL": "https://youtube.com/watch?v={{54.id.videoId}}",
+                    "DESCRIPTION": "{{54.snippet.description}}",
+                    "SCHEDULED UPLOAD": "{{setHour(addDays(now; 54.__IMTINDEX__); 19)}}",
+                    "THUMBNAIL": "https://img.youtube.com/vi/{{54.id.videoId}}/hqdefault.jpg",
+                    "SCRIPT": "{{54.snippet.title}}.\n\nMost people miss this.\n\nBut once you see it...\n\nyou start noticing it everywhere.\n\nAnd now... you won't be able to ignore it."
+                },
+                "sheetId": "CONTENT VAULT",
+                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "includesHeaders": true,
+                "insertDataOption": "INSERT_ROWS",
+                "useColumnHeaders": true,
+                "valueInputOption": "USER_ENTERED",
+                "insertUnformatted": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 1500,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "from": {
+                            "label": "My Drive"
+                        },
+                        "mode": {
+                            "label": "Search by path"
+                        },
+                        "sheetId": {
+                            "label": "CONTENT VAULT"
+                        },
+                        "spreadsheetId": {
+                            "path": [
+                                "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc"
+                            ]
+                        },
+                        "includesHeaders": {
+                            "label": "Yes"
+                        },
+                        "insertDataOption": {
+                            "mode": "chose",
+                            "label": "Insert rows"
+                        },
+                        "valueInputOption": {
+                            "mode": "chose",
+                            "label": "User entered"
+                        },
+                        "insertUnformatted": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            },
+                            "label": "My Google connection (solitairefund@gmail.com)"
+                        }
+                    }
+                }
+            },
+            "filter": {
+                "name": "Skip duplicates",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{34.__IMTLENGTH__}}",
+                            "b": "0",
+                            "o": "number:equal"
+                        }
+                    ]
+                ]
+            }
+        },
+        {
+            "id": 5,
+            "module": "google-sheets:updateRow",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 5554949
+            },
+            "mapper": {
+                "from": "drive",
+                "mode": "select",
+                "values": {
+                    "SCRIPT": "{{54.snippet.title}}.\n\nMost people miss this.\n\nBut once you see it...\n\nyou start noticing it everywhere.\n\nAnd now... you won't be able to ignore it.",
+                    "STATUS": "Script Ready"
+                },
+                "sheetId": "CONTENT VAULT",
+                "rowNumber": "{{3.rowNumber}}",
+                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "includesHeaders": true,
+                "useColumnHeaders": true,
+                "valueInputOption": "USER_ENTERED"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 2100,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "from": {
+                            "label": "My Drive"
+                        },
+                        "mode": {
+                            "label": "Search by path"
+                        },
+                        "sheetId": {
+                            "label": "CONTENT VAULT"
+                        },
+                        "spreadsheetId": {
+                            "path": [
+                                "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc"
+                            ]
+                        },
+                        "includesHeaders": {
+                            "label": "Yes"
+                        },
+                        "valueInputOption": {
+                            "mode": "chose",
+                            "label": "User entered"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            },
+                            "label": "My Google connection (solitairefund@gmail.com)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 6,
+            "module": "http:MakeRequest",
+            "version": 4,
+            "parameters": {
+                "tlsType": "",
+                "proxyKeychain": "",
+                "authenticationType": "noAuth"
+            },
+            "mapper": {
+                "url": "https://api.voicerss.org/",
+                "method": "get",
+                "headers": [],
+                "shareCookies": false,
+                "parseResponse": false,
+                "allowRedirects": true,
+                "queryParameters": [
+                    {
+                        "name": "key",
+                        "value": "90be4fec507346188e15b5645cb80111"
+                    },
+                    {
+                        "name": "hl",
+                        "value": "en-us"
+                    },
+                    {
+                        "name": "v",
+                        "value": "John"
+                    },
+                    {
+                        "name": "r",
+                        "value": "0"
+                    },
+                    {
+                        "name": "c",
+                        "value": "mp3"
+                    },
+                    {
+                        "name": "f",
+                        "value": "44khz_16bit_stereo"
+                    },
+                    {
+                        "name": "src",
+                        "value": "Most people miss this. But once you see it, you start noticing it everywhere. And now you will never be able to ignore it."
+                    }
+                ],
+                "stopOnHttpError": true,
+                "requestCompressedContent": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 2400,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "tlsType": {
+                            "label": "Empty"
+                        },
+                        "proxyKeychain": {
+                            "label": "Choose a key"
+                        },
+                        "authenticationType": {
+                            "label": "No authentication"
+                        }
+                    },
+                    "expect": {
+                        "method": {
+                            "mode": "chose",
+                            "label": "GET"
+                        },
+                        "parseResponse": {
+                            "mode": "chose"
+                        },
+                        "stopOnHttpError": {
+                            "mode": "chose"
+                        },
+                        "allowRedirects": {
+                            "mode": "chose"
+                        },
+                        "shareCookies": {
+                            "mode": "chose"
+                        },
+                        "requestCompressedContent": {
+                            "mode": "chose"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 55,
+            "module": "google-drive:uploadAFile",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 5616945
+            },
+            "mapper": {
+                "data": "{{6.data}}",
+                "select": "value",
+                "convert": false,
+                "filename": "{{54.id.videoId}}_audio.mp3",
+                "folderId": "/1oIJp-_6GaR0yfZPWwaO0rlWGpQcHkZAu",
+                "destination": "drive"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 2700,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "select": {
+                            "label": "Select from the list"
+                        },
+                        "folderId": {
+                            "mode": "chose",
+                            "path": [
+                                "11Labs"
+                            ]
+                        },
+                        "destination": {
+                            "label": "My Drive"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google-restricted"
+                            },
+                            "label": "My Google Restricted connection (solitairefund@gmail.com)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 25,
+            "module": "google-sheets:updateRow",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 5554949
+            },
+            "mapper": {
+                "from": "drive",
+                "mode": "select",
+                "values": {
+                    "STATUS": "Audio Ready"
+                },
+                "sheetId": "CONTENT VAULT",
+                "rowNumber": "{{3.rowNumber}}",
+                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "includesHeaders": true,
+                "useColumnHeaders": true,
+                "valueInputOption": "USER_ENTERED"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 3000,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "from": {
+                            "label": "My Drive"
+                        },
+                        "mode": {
+                            "label": "Search by path"
+                        },
+                        "sheetId": {
+                            "label": "CONTENT VAULT"
+                        },
+                        "spreadsheetId": {
+                            "path": [
+                                "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc"
+                            ]
+                        },
+                        "includesHeaders": {
+                            "label": "Yes"
+                        },
+                        "valueInputOption": {
+                            "mode": "chose",
+                            "label": "User entered"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            },
+                            "label": "My Google connection (solitairefund@gmail.com)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 40,
+            "module": "http:MakeRequest",
+            "version": 4,
+            "parameters": {
+                "tlsType": "",
+                "proxyKeychain": "",
+                "authenticationType": "noAuth"
+            },
+            "mapper": {
+                "url": "https://ffmpeg-render-server-0r17.onrender.com/render",
+                "method": "get",
+                "headers": [],
+                "shareCookies": false,
+                "parseResponse": false,
+                "allowRedirects": true,
+                "queryParameters": [
+                    {
+                        "name": "video1",
+                        "value": "https://www.youtube.com/watch?v={{54.id.videoId}}"
+                    },
+                    {
+                        "name": "audio",
+                        "value": "https://drive.google.com/uc?export=download&id={{55.id}}"
+                    },
+                    {
+                        "name": "title",
+                        "value": "{{54.snippet.title}}"
+                    }
+                ],
+                "stopOnHttpError": true,
+                "requestCompressedContent": false,
+                "timeout": 300
+            },
+            "metadata": {
+                "designer": {
+                    "x": 3600,
+                    "y": 0
+                },
+                "restore": {
+                    "parameters": {
+                        "tlsType": {
+                            "label": "Empty"
+                        },
+                        "proxyKeychain": {
+                            "label": "Choose a key"
+                        },
+                        "authenticationType": {
+                            "label": "No authentication"
+                        }
+                    },
+                    "expect": {
+                        "method": {
+                            "mode": "chose",
+                            "label": "GET"
+                        },
+                        "parseResponse": {
+                            "mode": "chose"
+                        },
+                        "stopOnHttpError": {
+                            "mode": "chose"
+                        },
+                        "allowRedirects": {
+                            "mode": "chose"
+                        },
+                        "shareCookies": {
+                            "mode": "chose"
+                        },
+                        "requestCompressedContent": {
+                            "mode": "chose"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 56,
+            "module": "google-drive:uploadAFile",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 5616945
+            },
+            "mapper": {
+                "data": "{{40.data}}",
+                "select": "value",
+                "convert": false,
+                "filename": "{{54.id.videoId}}_video.mp4",
+                "folderId": "/1oIJp-_6GaR0yfZPWwaO0rlWGpQcHkZAu",
+                "destination": "drive"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 3900,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "select": {
+                            "label": "Select from the list"
+                        },
+                        "folderId": {
+                            "mode": "chose",
+                            "path": [
+                                "11Labs"
+                            ]
+                        },
+                        "destination": {
+                            "label": "My Drive"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google-restricted"
+                            },
+                            "label": "My Google Restricted connection (solitairefund@gmail.com)"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": 53,
+            "module": "google-sheets:updateRow",
+            "version": 2,
+            "parameters": {
+                "__IMTCONN__": 5554949
+            },
+            "mapper": {
+                "from": "drive",
+                "mode": "select",
+                "values": {
+                    "STATUS": "Ready",
+                    "VIDEO URL": "{{56.webViewLink}}"
+                },
+                "sheetId": "CONTENT VAULT",
+                "rowNumber": "{{3.rowNumber}}",
+                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "includesHeaders": true,
+                "useColumnHeaders": true,
+                "valueInputOption": "USER_ENTERED"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 4200,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "from": {
+                            "label": "My Drive"
+                        },
+                        "mode": {
+                            "label": "Search by path"
+                        },
+                        "sheetId": {
+                            "label": "CONTENT VAULT"
+                        },
+                        "spreadsheetId": {
+                            "path": [
+                                "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc"
+                            ]
+                        },
+                        "includesHeaders": {
+                            "label": "Yes"
+                        },
+                        "valueInputOption": {
+                            "mode": "chose",
+                            "label": "User entered"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google"
+                            },
+                            "label": "My Google connection (solitairefund@gmail.com)"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": true,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu1.make.com",
+        "notes": []
+    }
+}
