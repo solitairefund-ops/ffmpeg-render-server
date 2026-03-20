@@ -32,20 +32,22 @@ async function getPexelsVideo(query) {
   console.log("Fetching Pexels video for:", query);
   const res = await axios.get("https://api.pexels.com/videos/search", {
     headers: { Authorization: PEXELS_KEY },
-    params: { query: query || "luxury travel", per_page: 3, orientation: "portrait" }
+    params: { query: query || "luxury travel", per_page: 5, orientation: "portrait" }
   });
   const videos = res.data.videos;
   if (!videos || videos.length === 0) throw new Error("No Pexels videos found");
+  
+  // Pick smallest file to save memory - max 720p
   const video = videos[0];
-  const files = video.video_files.sort((a, b) => b.height - a.height);
-  const file = files.find(f => f.height <= 1080 && f.file_type === "video/mp4") || files[0];
-  console.log("Pexels video URL:", file.link);
+  const files = video.video_files.sort((a, b) => a.height - b.height);
+  const file = files.find(f => f.height >= 480 && f.file_type === "video/mp4") || files[0];
+  console.log("Pexels video:", file.width, "x", file.height, file.link);
   return file.link;
 }
 
 async function getVoiceRSSAudio(dest) {
   console.log("Fetching VoiceRSS audio...");
-  const url = `https://api.voicerss.org/?key=${VOICERSS_KEY}&hl=en-us&v=John&r=0&c=mp3&f=44khz_16bit_stereo&src=${encodeURIComponent(SCRIPT)}`;
+  const url = `https://api.voicerss.org/?key=${VOICERSS_KEY}&hl=en-us&v=John&r=0&c=mp3&f=22khz_8bit_mono&src=${encodeURIComponent(SCRIPT)}`;
   await downloadFile(url, dest);
   const size = fs.statSync(dest).size;
   console.log("Audio size:", size, "bytes");
@@ -55,28 +57,24 @@ async function getVoiceRSSAudio(dest) {
 app.get("/health", (req, res) => {
   const { exec } = require("child_process");
   exec("ffmpeg -version", (err, stdout) => {
-    if (err) {
-      res.json({ status: "error", ffmpeg: "not found", error: err.message });
-    } else {
-      res.json({ status: "ok", ffmpeg: "ready", mode: "pexels+voicerss+ffmpeg" });
-    }
+    res.json({ status: err ? "error" : "ok", ffmpeg: err ? "not found" : "ready" });
   });
 });
 
 async function handleRender(params, res) {
-  const query = params.query || params.q || "luxury travel";
+  const query = params.query || "luxury travel";
   const title = params.title || query;
-  console.log("Render request - query:", query, "title:", title);
+  console.log("Render - query:", query);
 
   const id = uuidv4();
-  const videoPath = path.join(TMP, `${id}_video.mp4`);
-  const audioPath = path.join(TMP, `${id}_audio.mp3`);
-  const outputPath = path.join(TMP, `${id}_output.mp4`);
+  const videoPath = path.join(TMP, `${id}_v.mp4`);
+  const audioPath = path.join(TMP, `${id}_a.mp3`);
+  const outputPath = path.join(TMP, `${id}_out.mp4`);
 
   try {
     const videoUrl = await getPexelsVideo(query);
     await downloadFile(videoUrl, videoPath);
-    console.log("Video downloaded:", fs.statSync(videoPath).size, "bytes");
+    console.log("Video:", fs.statSync(videoPath).size, "bytes");
 
     await getVoiceRSSAudio(audioPath);
 
@@ -90,12 +88,16 @@ async function handleRender(params, res) {
           "-c:a aac",
           "-shortest",
           "-movflags +faststart",
-          "-vf scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1",
-          "-r 30",
-          "-preset fast",
-          "-crf 23",
+          // Scale to 540x960 instead of 1080x1920 - uses 4x less memory
+          "-vf scale=540:960:force_original_aspect_ratio=decrease,pad=540:960:(ow-iw)/2:(oh-ih)/2,setsar=1",
+          "-r 24",
+          // ultrafast preset uses minimal memory
+          "-preset ultrafast",
+          "-crf 28",
           "-map 0:v:0",
-          "-map 1:a:0"
+          "-map 1:a:0",
+          // Limit threads to avoid OOM
+          "-threads 1"
         ])
         .output(outputPath)
         .on("end", resolve)
@@ -103,7 +105,7 @@ async function handleRender(params, res) {
         .run();
     });
 
-    console.log("Render done:", fs.statSync(outputPath).size, "bytes");
+    console.log("Done:", fs.statSync(outputPath).size, "bytes");
     res.setHeader("Content-Type", "video/mp4");
     res.setHeader("Content-Disposition", `attachment; filename="${id}.mp4"`);
     const stream = fs.createReadStream(outputPath);
@@ -112,7 +114,6 @@ async function handleRender(params, res) {
       [videoPath, audioPath, outputPath].forEach(f => {
         try { fs.unlinkSync(f); } catch (e) {}
       });
-      console.log("Done:", id);
     });
 
   } catch (err) {
