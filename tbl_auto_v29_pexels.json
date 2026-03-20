@@ -1,5 +1,5 @@
 {
-    "name": "tbl auto v29 pexels ffmpeg",
+    "name": "tbl auto v33 simple params",
     "flow": [
         {
             "id": 50,
@@ -67,8 +67,8 @@
                 "cell": "A{{50.index + 1}}",
                 "valueRenderOption": "FORMATTED_VALUE",
                 "dateTimeRenderOption": "FORMATTED_STRING",
-                "from": "share",
-                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "from": "drive",
+                "spreadsheetId": "/1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
                 "sheetId": "SEARCH QUERIES"
             },
             "metadata": {
@@ -91,14 +91,14 @@
                             "label": "Search by path"
                         },
                         "from": {
-                            "label": "Shared with me"
+                            "label": "My Drive"
                         },
                         "sheetId": {
                             "label": "SEARCH QUERIES"
                         },
                         "spreadsheetId": {
                             "path": [
-                                "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc"
+                                "TBL"
                             ]
                         },
                         "valueRenderOption": {
@@ -110,7 +110,71 @@
                             "label": "Formatted string"
                         }
                     }
-                }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:google",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "select",
+                        "type": "select",
+                        "label": "Search Method",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "list",
+                                "fromAll",
+                                "map"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "cell",
+                        "type": "text",
+                        "label": "Cell",
+                        "required": true
+                    },
+                    {
+                        "name": "valueRenderOption",
+                        "type": "select",
+                        "label": "Value render option"
+                    },
+                    {
+                        "name": "dateTimeRenderOption",
+                        "type": "select",
+                        "label": "Date and time render option"
+                    },
+                    {
+                        "name": "from",
+                        "type": "select",
+                        "label": "Drive",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "drive",
+                                "share",
+                                "team"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "spreadsheetId",
+                        "type": "file",
+                        "label": "Spreadsheet Name",
+                        "required": true
+                    },
+                    {
+                        "name": "sheetId",
+                        "type": "select",
+                        "label": "Sheet Name",
+                        "required": true
+                    }
+                ]
             }
         },
         {
@@ -409,7 +473,7 @@
                     "SCRIPT": "Most people miss this. But once you see it, you start noticing it everywhere. And now you will never be able to ignore it."
                 },
                 "sheetId": "CONTENT VAULT",
-                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "spreadsheetId": "/1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
                 "includesHeaders": true,
                 "insertDataOption": "INSERT_ROWS",
                 "useColumnHeaders": true,
@@ -480,7 +544,7 @@
                 },
                 "sheetId": "CONTENT VAULT",
                 "rowNumber": "{{3.rowNumber}}",
-                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "spreadsheetId": "/1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
                 "includesHeaders": true,
                 "useColumnHeaders": true,
                 "valueInputOption": "USER_ENTERED"
@@ -624,12 +688,12 @@
                 "__IMTCONN__": 5616945
             },
             "mapper": {
-                "data": "{{6.data}}",
                 "select": "value",
-                "convert": false,
                 "filename": "{{54.id.videoId}}_audio.mp3",
-                "folderId": "1oIJp-_6GaR0yfZPWwaO0rlWGpQcHkZAu",
-                "destination": "drive"
+                "data": "{{6.data}}",
+                "convert": false,
+                "destination": "drive",
+                "folderId": "1oIJp-_6GaR0yfZPWwaO0rlWGpQcHkZAu"
             },
             "metadata": {
                 "designer": {
@@ -637,9 +701,21 @@
                     "y": 0
                 },
                 "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "label": "My Google Restricted connection (solitairefund@gmail.com)",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "google-restricted"
+                            }
+                        }
+                    },
                     "expect": {
                         "select": {
                             "label": "Select from the list"
+                        },
+                        "destination": {
+                            "label": "My Drive"
                         },
                         "folderId": {
                             "mode": "chose",
@@ -647,20 +723,75 @@
                                 "11Labs"
                             ]
                         },
-                        "destination": {
-                            "label": "My Drive"
-                        }
-                    },
-                    "parameters": {
-                        "__IMTCONN__": {
-                            "data": {
-                                "scoped": "true",
-                                "connection": "google-restricted"
-                            },
-                            "label": "My Google Restricted connection (solitairefund@gmail.com)"
+                        "convert": {
+                            "mode": "chose"
                         }
                     }
-                }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:google-restricted",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "select",
+                        "type": "select",
+                        "label": "Enter a Folder ID",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "map",
+                                "value"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "title",
+                        "type": "text",
+                        "label": "New File Name"
+                    },
+                    {
+                        "name": "filename",
+                        "type": "text",
+                        "label": "File Name",
+                        "required": true
+                    },
+                    {
+                        "name": "data",
+                        "type": "buffer",
+                        "label": "Data",
+                        "required": true
+                    },
+                    {
+                        "name": "convert",
+                        "type": "boolean",
+                        "label": "Convert a File",
+                        "required": true
+                    },
+                    {
+                        "name": "destination",
+                        "type": "select",
+                        "label": "New Drive Location",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "drive",
+                                "share",
+                                "team"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "folderId",
+                        "type": "folder",
+                        "label": "New Folder Location",
+                        "required": true
+                    }
+                ]
             }
         },
         {
@@ -678,7 +809,7 @@
                 },
                 "sheetId": "CONTENT VAULT",
                 "rowNumber": "{{3.rowNumber}}",
-                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "spreadsheetId": "/1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
                 "includesHeaders": true,
                 "useColumnHeaders": true,
                 "valueInputOption": "USER_ENTERED"
@@ -744,10 +875,6 @@
                     {
                         "name": "query",
                         "value": "{{51.value}}"
-                    },
-                    {
-                        "name": "audio",
-                        "value": "https://drive.google.com/uc?export=download&id={{55.id}}"
                     },
                     {
                         "name": "title",
@@ -862,7 +989,7 @@
                 },
                 "sheetId": "CONTENT VAULT",
                 "rowNumber": "{{3.rowNumber}}",
-                "spreadsheetId": "1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
+                "spreadsheetId": "/1JT7JUXGdO2aj3s5Tl0XNa8mBOcH_57o97VwAG_iGSsc",
                 "includesHeaders": true,
                 "useColumnHeaders": true,
                 "valueInputOption": "USER_ENTERED"
