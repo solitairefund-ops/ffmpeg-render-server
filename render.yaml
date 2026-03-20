@@ -2,8 +2,10 @@ services:
   - type: web
     name: ffmpeg-render-server
     env: node
-    buildCommand: npm install && pip install yt-dlp
+    buildCommand: npm install && pip3 install yt-dlp && ln -sf $(which yt-dlp || echo /usr/local/bin/yt-dlp) /usr/local/bin/yt-dlp
     startCommand: node index.js
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PATH
+        value: /usr/local/bin:/usr/bin:/bin:/home/render/.local/bin
